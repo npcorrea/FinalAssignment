@@ -11,8 +11,8 @@ public class CatController : MonoBehaviour
     }
 
     [SerializeField] private float m_moveSpeed = 2;
-    [SerializeField] private float m_turnSpeed = 200;
-    [SerializeField] private float m_jumpForce = 5.2f;
+    //[SerializeField] private float m_turnSpeed = 200;
+    [SerializeField] private float m_jumpForce = 7f;
     [SerializeField] private Animator m_animator;
     [SerializeField] private Rigidbody m_rigidBody;
 
@@ -116,6 +116,7 @@ public class CatController : MonoBehaviour
 
     private void TankUpdate()
     {
+
         float v = Input.GetAxis("Vertical");
         float h = Input.GetAxis("Horizontal");
 
@@ -135,7 +136,16 @@ public class CatController : MonoBehaviour
         m_currentH = Mathf.Lerp(m_currentH, h, Time.deltaTime * m_interpolation);
 
         transform.position += transform.forward * m_currentV * m_moveSpeed * Time.deltaTime;
-        transform.Rotate(0, m_currentH * m_turnSpeed * Time.deltaTime, 0);
+
+        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
+        {
+            transform.position += transform.right * m_currentH * m_moveSpeed * Time.deltaTime;
+        }
+
+        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+        {
+            transform.position += transform.right * m_currentH * m_moveSpeed * Time.deltaTime;
+        }
 
         m_animator.SetFloat("Speed_f", m_currentV);
 
