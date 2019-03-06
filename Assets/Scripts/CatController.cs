@@ -10,7 +10,7 @@ public class CatController : MonoBehaviour
         Direct
     }
 
-    [SerializeField] private float m_moveSpeed = 2;
+    [SerializeField] private float m_moveSpeed = 2;   
     //[SerializeField] private float m_turnSpeed = 200;
     [SerializeField] private float m_jumpForce = 7f;
     [SerializeField] private Animator m_animator;
