@@ -85,7 +85,8 @@ public class HumanPatrol : MonoBehaviour
     public LayerMask PlayerMask;
     public LayerMask Default;
     public Transform[] waypoints;
-    //public GameObject eyes;
+    public float rotationSpeed = 2f;
+    public GameObject look1;
     private int destPoint = 0;
     private NavMeshAgent agent;
     private float distance = 2;
@@ -146,11 +147,19 @@ public class HumanPatrol : MonoBehaviour
         }
     }
 
-    void Look()
+    private void RotateTowards(GameObject target)
     {
-        agent.transform.RotateAround(transform.position, transform.up, 45*Time.deltaTime);
-    }
+        Vector3 lookRight = target.transform.position;
+        Vector3 direction = (lookRight - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));    // flattens the vector3
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
 
+        if (agent.transform.position == lookRight)
+        {
+            agent.isStopped = false;
+            GotoNextPoint();
+        }
+    }
 
     public Vector3 DirFromAngle(float angleInDegrees, bool angleIsGlobal)
     {
@@ -167,9 +176,11 @@ public class HumanPatrol : MonoBehaviour
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
             //agent.isStopped = true;
-            agent.speed = 0;
-            //Look();
-            //GotoNextPoint();
+            //RotateTowards(look1);
+
+            GotoNextPoint();
+
+
         }
 
     }
