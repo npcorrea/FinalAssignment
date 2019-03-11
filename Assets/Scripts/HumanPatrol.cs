@@ -91,7 +91,6 @@ public class HumanPatrol : MonoBehaviour
     public GameObject player;
     private int destPoint = 0;
     private NavMeshAgent agent;
-    private float distance = 2;
     private bool foundPlayer = false;
     private bool m_isGrounded;
     private bool playerWasFound;
@@ -223,11 +222,11 @@ public class HumanPatrol : MonoBehaviour
         {
             agent.destination = player.transform.position;
             agent.speed = 1.2f;
-            dist = Vector3.Distance(player.transform.position, transform.position);
+            dist = Vector3.Distance(transform.position, player.transform.position);
 
-            if (dist <= 2)
-                Debug.Log("Catching");
-                player.transform.GetComponent<Rigidbody>().AddForce((player.transform.position - transform.position).normalized * 50);
+            if (dist < 2)
+            
+                player.transform.GetComponent<Rigidbody>().AddForce((player.transform.position - transform.position).normalized * -50);
         }
         else
         {
