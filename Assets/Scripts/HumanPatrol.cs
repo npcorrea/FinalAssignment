@@ -81,15 +81,22 @@ public class HumanPatrol : MonoBehaviour
     public float viewRadius;
     [Range(0, 360)]
     public float viewAngle;
+    [SerializeField] private Animator m_animator;
+    [SerializeField] private Rigidbody m_rigidBody;
 
     public LayerMask PlayerMask;
     public LayerMask Default;
     public Transform[] waypoints;
     public float rotationSpeed = 2f;
-    public GameObject look1;
+    public GameObject player;
     private int destPoint = 0;
     private NavMeshAgent agent;
     private float distance = 2;
+    private bool foundPlayer = false;
+    private bool m_isGrounded;
+    private bool playerWasFound;
+    private float m_speed;
+    private float dist;
 
 
     [HideInInspector]
@@ -97,7 +104,11 @@ public class HumanPatrol : MonoBehaviour
 
     void Start()
     {
+        player = GameObject.FindGameObjectWithTag("Player");
         agent = GetComponent<NavMeshAgent>();
+        m_speed = agent.speed;
+        m_isGrounded = true;
+        m_animator.SetBool("Grounded", m_isGrounded);
         StartCoroutine("FindTargetsWithDelay", .2f);
         GotoNextPoint();
     }
@@ -118,17 +129,21 @@ public class HumanPatrol : MonoBehaviour
         if (waypoints.Length == 0)
             return;
 
+        //randomize desitination
+        destPoint = Random.Range(0, waypoints.Length);
+
         // Set the agent to go to the currently selected destination.
         agent.destination = waypoints[destPoint].position;
 
         // Choose the next point in the array as the destination,
         // cycling to the start if necessary.
-        destPoint = (destPoint + 1) % waypoints.Length;
+        //destPoint = (destPoint + 1) % waypoints.Length;
     }
 
     void FindVisibleTargets()
     {
         visibleTargets.Clear();
+        foundPlayer = false;
         Collider[] targetsInViewRadius = Physics.OverlapSphere(transform.position, viewRadius, PlayerMask);
 
         for (int i = 0; i < targetsInViewRadius.Length; i++)
@@ -142,14 +157,15 @@ public class HumanPatrol : MonoBehaviour
                 if (!Physics.Raycast(transform.position + new Vector3(0,1.0f,0), dirToTarget, dstToTarget, Default))
                 {
                     visibleTargets.Add(target);
+                    foundPlayer = true;
                 }
             }
         }
     }
 
-    private void RotateTowards(GameObject target)
+    IEnumerator RotateTowards(float angle)
     {
-        Vector3 lookRight = target.transform.position;
+        /*Vector3 lookRight = target.transform.position;
         Vector3 direction = (lookRight - transform.position).normalized;
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));    // flattens the vector3
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
@@ -157,8 +173,38 @@ public class HumanPatrol : MonoBehaviour
         if (agent.transform.position == lookRight)
         {
             agent.isStopped = false;
+            yield return null;
             GotoNextPoint();
+        }*/
+        /*float speed = .1f;
+
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, angle, 0), speed * Time.deltaTime);
+        Debug.Log("Rotating");
+
+
+
+        int i = 0;
+        while(i < 45)
+        {
+            transform.Rotate(0, angle, 0, Space.Self);
+            Debug.Log("Rotating");
+            yield return new WaitForSeconds(.5f);
+            i++;
+        }*/
+        //yield return null;
+
+        float rot = 0f;
+        float dir = 1f;
+        float rotSpeed = 10f;
+
+        while (rot < angle)
+        {
+            float step = Time.deltaTime * rotSpeed;
+            transform.Rotate(new Vector3(0, 12, 0) * step * dir);
+            yield return null;
         }
+            rot = 0f;
+            dir *= -1f;
     }
 
     public Vector3 DirFromAngle(float angleInDegrees, bool angleIsGlobal)
@@ -172,16 +218,41 @@ public class HumanPatrol : MonoBehaviour
 
     void Update()
     {
+        // set human speed based on if they see cat or not
+        if(foundPlayer == true)
+        {
+            agent.destination = player.transform.position;
+            agent.speed = 1.2f;
+            dist = Vector3.Distance(player.transform.position, transform.position);
+
+            if (dist <= 2)
+                Debug.Log("Catching");
+                player.transform.GetComponent<Rigidbody>().AddForce((player.transform.position - transform.position).normalized * 50);
+        }
+        else
+        {
+            agent.speed = .9f;
+        }
+        m_speed = agent.speed;
+        m_animator.SetFloat("Speed_f", m_speed);
+
+        // if player was being chased and then hid in the human's view
+        if (playerWasFound == true && dist <= 8)
+        {
+            foundPlayer = true;
+        }
+
         // Choose the next destination point when the agent gets close to the current one.
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
             //agent.isStopped = true;
-            //RotateTowards(look1);
-
+            //StartCoroutine("RotateTowards", 45f);
+            //agent.isStopped = false;
             GotoNextPoint();
 
 
         }
+        playerWasFound = foundPlayer;
 
     }
 
