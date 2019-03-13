@@ -225,8 +225,7 @@ public class HumanPatrol : MonoBehaviour
             dist = Vector3.Distance(transform.position, player.transform.position);
 
             if (dist < 2)
-            
-                player.transform.GetComponent<Rigidbody>().AddForce((player.transform.position - transform.position).normalized * -50);
+               player.transform.GetComponent<Rigidbody>().AddForce((player.transform.position - transform.position).normalized * -50);
         }
         else
         {
@@ -253,6 +252,14 @@ public class HumanPatrol : MonoBehaviour
         }
         playerWasFound = foundPlayer;
 
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Pushable") && collision.rigidbody.velocity.magnitude > 0)
+        {
+            Debug.Log("OW!");
+        }
     }
 
 }
