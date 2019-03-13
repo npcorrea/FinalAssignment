@@ -221,7 +221,7 @@ public class HumanPatrol : MonoBehaviour
         if(foundPlayer == true)
         {
             agent.destination = player.transform.position;
-            agent.speed = 1.2f;
+            agent.speed = 1.4f;
             dist = Vector3.Distance(transform.position, player.transform.position);
 
             if (dist < 2)
