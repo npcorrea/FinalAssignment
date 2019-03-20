@@ -74,6 +74,8 @@ using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class HumanPatrol : MonoBehaviour
 {
@@ -89,6 +91,8 @@ public class HumanPatrol : MonoBehaviour
     public Transform[] waypoints;
     public float rotationSpeed = 2f;
     public GameObject player;
+    public string GameOverScene;
+    public string WinScene;
     private int destPoint = 0;
     private NavMeshAgent agent;
     private bool foundPlayer = false;
@@ -97,9 +101,12 @@ public class HumanPatrol : MonoBehaviour
     private float m_speed;
     private float dist;
 
+    public Image healthBar;
 
     [HideInInspector]
     public List<Transform> visibleTargets = new List<Transform>();
+    public float startHealth = 5;
+    private float health;
 
     void Start()
     {
@@ -109,6 +116,7 @@ public class HumanPatrol : MonoBehaviour
         m_isGrounded = true;
         m_animator.SetBool("Grounded", m_isGrounded);
         StartCoroutine("FindTargetsWithDelay", .2f);
+        health = startHealth;
         GotoNextPoint();
     }
 
@@ -224,8 +232,14 @@ public class HumanPatrol : MonoBehaviour
             agent.speed = 1.4f;
             dist = Vector3.Distance(transform.position, player.transform.position);
 
-            if (dist < 2)
-               player.transform.GetComponent<Rigidbody>().AddForce((player.transform.position - transform.position).normalized * -50);
+            if (dist < 1)
+            {
+                player.transform.GetComponent<Rigidbody>().AddForce((player.transform.position - transform.position).normalized * -50);
+
+                if(dist <= 1)
+                    SceneManager.LoadScene(GameOverScene);
+            }
+               
         }
         else
         {
@@ -258,8 +272,26 @@ public class HumanPatrol : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Pushable") && collision.rigidbody.velocity.magnitude > 0)
         {
-            Debug.Log("OW!");
+            health -= collision.rigidbody.mass;
+            healthBar.fillAmount = health / startHealth;
+            Debug.Log(health);
+
+            if(health <= 0)
+            {
+                Die();
+            }
         }
+    }
+
+    void Die()
+    {
+        m_animator.SetBool("Death_b", true);
+        m_animator.SetInteger("DeathType_int", 1);
+    }
+
+    void DeathEvent()
+    {
+        SceneManager.LoadScene(WinScene);
     }
 
 }
